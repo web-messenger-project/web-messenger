@@ -1,5 +1,7 @@
-.env
+userLoggingAPI/.env
 **/__pycache__/**
+info.txt
+
 # Visual Studio
 .vs/
 *.suo
