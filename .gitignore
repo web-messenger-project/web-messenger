@@ -1,0 +1,37 @@
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build output
+bin/
+obj/
+TestResults/
+*.log
+*.tlog
+*.cache
+*.pdb
+
+# NuGet
+*.nupkg
+packages/
+project.lock.json
+project.assets.json
+*.nuget.props
+*.nuget.targets
+
+# Rider and Resharper
+.idea/
+*.DotSettings.user
+_ReSharper*/
+*.resharper
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
