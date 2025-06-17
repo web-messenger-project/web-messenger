@@ -1,40 +1,85 @@
 ﻿using System;
+using System.IO;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 
-namespace LoginRegisterApp
+namespace WinFormsExample
 {
     public partial class Form1 : Form
     {
+        private string ApiKey;
+
         public Form1()
         {
             InitializeComponent();
+            LoadApiKey();
         }
 
-        private void lblRegister_Click(object sender, EventArgs e)
+        private void LoadApiKey()
         {
-            RegisterForm regForm = new RegisterForm();
-            regForm.ShowDialog();
-        }
-
-        private void btnLogin_Click(object sender, EventArgs e)
-        {
-            string login = txtLogin.Text.Trim();
-            string password = txtPassword.Text;
-
-            if (string.IsNullOrEmpty(login) || string.IsNullOrEmpty(password))
+            try
             {
-                MessageBox.Show("Please enter both login and password.", "Login Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "apikey.txt");
+                ApiKey = File.ReadAllText(path).Trim();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to load API key: {ex.Message}");
+                ApiKey = null;
+            }
+        }
+
+        private async void btnLogin_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(ApiKey))
+            {
+                MessageBox.Show("API key is missing. Please ensure apikey.txt exists.");
                 return;
             }
 
-            if (login == "admin" && password == "admin")
+            string login = txtLogin.Text;
+            string password = txtPassword.Text;
+
+            var payload = new
             {
-                MessageBox.Show("Login successful!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            else
+                login,
+                password,
+                q = ApiKey
+            };
+
+            try
             {
-                MessageBox.Show("Invalid login or password.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                using (var client = new HttpClient())
+                {
+                    var json = JsonConvert.SerializeObject(payload);
+                    var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                    var response = await client.PostAsync("https://yourapi.com/login", content);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        MessageBox.Show("Login successful!");
+                        
+                    }
+                    else
+                    {
+                        MessageBox.Show($"Login failed: {response.ReasonPhrase}");
+                    }
+                }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error calling API: {ex.Message}");
+            }
+        }
+
+        private void linkRegister_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            var registerForm = new RegisterForm();
+            registerForm.ShowDialog();
         }
     }
 }
