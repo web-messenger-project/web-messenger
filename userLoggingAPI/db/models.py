@@ -9,3 +9,5 @@ class dbModel(models.Model):
     password = models.CharField(max_length=100)
 
     creation_date = models.DateField(auto_now_add=True)
+
+    included_in_these_chats = models.JSONField(default=list)
