@@ -35,3 +35,6 @@ _ReSharper*/
 .DS_Store
 Thumbs.db
 ehthumbs.db
+
+# Ignore API key file
+apikey.txt
