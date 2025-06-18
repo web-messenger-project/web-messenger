@@ -11,15 +11,33 @@ from userLoggingAPI.settings import BASE_DIR
 import environ
 import json
 
-#def check_api_key(view):
-#    @wraps(view)
-#    def wrapper(*args, **kwargs):
-#        return view(*args, **kwargs)
+def check_api_key(view):
+    @wraps(view)
+    def wrapper(request, *args, **kwargs):
+        env = environ.Env()
+        env.read_env(BASE_DIR / '.env')
 
-#    return wrapper
+        api_key = env('API_KEY')
+
+        q = None
+        if "_content" in request.data:
+            try:
+                content = json.loads(request.data["_content"])
+                q = content.get("q")
+            except Exception:
+                q = None
+        else:
+            q = request.data.get("q")
+
+        if q != api_key:
+            return Response({'Błąd': 'Błędny klucz API'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        return view(request, *args, **kwargs)
+
+    return wrapper
 
 @api_view(['POST'])
-#@check_api_key
+@check_api_key
 def register(request):
     """Add user to the database"""
 
@@ -32,16 +50,19 @@ def register(request):
 
         login = content.get('login')
         email = content.get('email')
+
         for i in login:
             if i == " ":
                 return Response({'Błąd': 'Login zawiera spacje'}, status=status.HTTP_400_BAD_REQUEST)
 
         if dbModel.objects.filter(login=login).first() is not None:
             return Response({'Błąd': 'Taki login już istnieje'}, status=status.HTTP_400_BAD_REQUEST)
+
         if dbModel.objects.filter(email=email).first() is not None:
             return Response({'Błąd': 'Podany email został już przypisany'}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = dbModelSerializer(data=content)
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -61,6 +82,7 @@ def register(request):
         return Response({'Błąd': 'Baza danych nie działa :('}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
+@check_api_key
 def login(request):
     """Retrive user data from the database"""
 
@@ -72,10 +94,12 @@ def login(request):
                 raise KeyError()
 
         user = dbModel.objects.get(login=content.get('login'))
+
         if user.password != content.get('password'):
             return Response({'Błąd': 'Złe hasło'}, status=status.HTTP_401_UNAUTHORIZED)
 
         serializer = dbModelSerializer(user)
+
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     except KeyError:
@@ -91,7 +115,7 @@ def login(request):
         return Response({'Błąd': 'Baza danych nie działa :('}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     except dbModel.DoesNotExist:
-        return Response({'Błąd': 'Taki login nie istnieje'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'Błąd': 'Taki login nie istnieje'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['DELETE'])
 def delete_user(request):
