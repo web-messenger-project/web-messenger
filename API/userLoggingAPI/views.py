@@ -6,7 +6,7 @@ from db.models import dbModel
 from .serializers import dbModelSerializer
 
 from functools import wraps
-from userLoggingAPI.settings import BASE_DIR
+from API.settings import BASE_DIR
 
 import environ
 import json
