@@ -15,5 +15,8 @@ class userDB(models.Model):
 class chatDB(models.Model):
     name = models.CharField(max_length=50)
     members = models.JSONField(default=list)
+    is_group_chat = models.BooleanField()
+
+    creation_date = models.DateField(auto_now_add=True)
 
     messages = models.JSONField(default=list)
