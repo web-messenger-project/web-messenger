@@ -1,6 +1,6 @@
 from django.db import models
 
-class dbModel(models.Model):
+class userDB(models.Model):
     name = models.CharField(max_length=20)
     surname = models.CharField(max_length=75)
 
@@ -11,3 +11,9 @@ class dbModel(models.Model):
     creation_date = models.DateField(auto_now_add=True)
 
     included_in_these_chats = models.JSONField(default=list)
+
+class chatDB(models.Model):
+    name = models.CharField(max_length=50)
+    members = models.JSONField(default=list)
+
+    messages = models.JSONField(default=list)

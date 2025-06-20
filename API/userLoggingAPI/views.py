@@ -2,8 +2,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from django.db import DatabaseError
 from rest_framework import status
-from db.models import dbModel
-from .serializers import dbModelSerializer
+from db.models import userDB
+from .serializers import userDBSerializer
 
 from functools import wraps
 from API.settings import BASE_DIR
@@ -55,13 +55,13 @@ def register(request):
             if i == " ":
                 return Response({'Błąd': 'Login zawiera spacje'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if dbModel.objects.filter(login=login).first() is not None:
+        if userDB.objects.filter(login=login).first() is not None:
             return Response({'Błąd': 'Taki login już istnieje'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if dbModel.objects.filter(email=email).first() is not None:
+        if userDB.objects.filter(email=email).first() is not None:
             return Response({'Błąd': 'Podany email został już przypisany'}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = dbModelSerializer(data=content)
+        serializer = userDBSerializer(data=content)
 
         if serializer.is_valid():
             serializer.save()
@@ -93,12 +93,12 @@ def login(request):
             if content.get(param) is None:
                 raise KeyError()
 
-        user = dbModel.objects.get(login=content.get('login'))
+        user = userDB.objects.get(login=content.get('login'))
 
         if user.password != content.get('password'):
             return Response({'Błąd': 'Złe hasło'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        serializer = dbModelSerializer(user)
+        serializer = userDBSerializer(user)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
     
@@ -114,7 +114,7 @@ def login(request):
     except DatabaseError:
         return Response({'Błąd': 'Baza danych nie działa :('}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
-    except dbModel.DoesNotExist:
+    except userDB.DoesNotExist:
         return Response({'Błąd': 'Taki login nie istnieje'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['DELETE'])
