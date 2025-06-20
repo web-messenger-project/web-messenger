@@ -38,6 +38,8 @@ def check_api_key(view):
 
         if q != api_key:
             return Response({'Błąd': 'Błędny klucz API'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        request.content = content
 
         return view(request, *args, **kwargs)
 
@@ -48,21 +50,19 @@ def check_api_key(view):
 def register(request):
     """Add user to the database"""
 
-    content = json.loads(request.data["_content"])
-
     try:
-        if not contain_necessary_fields(content, ('email', 'login', 'name', 'password', 'surname')):
+        if not contain_necessary_fields(request.content, ('email', 'login', 'name', 'password', 'surname')):
             raise KeyError()
 
-        login = content.get('login')
-        email = content.get('email')
+        login = request.content.get('login')
+        email = request.content.get('email')
 
         for i in login:
             if i == " ":
                 return Response({'Błąd': 'Login zawiera spacje'}, status=status.HTTP_400_BAD_REQUEST)
 
         for param in ('name', 'surname', 'login'):
-            if content.get(param) in ('SERVER', 'server', 'Server', 'SERWER', 'serwer', 'Serwer'):
+            if request.content.get(param) in ('SERVER', 'server', 'Server', 'SERWER', 'serwer', 'Serwer'):
                 return Response({'Błąd': 'Użytkownik chce sie nazwać "SERVER"'}, status=status.HTTP_403_FORBIDDEN)
 
         if userDB.objects.filter(login=login).first() is not None:
@@ -71,7 +71,7 @@ def register(request):
         if userDB.objects.filter(email=email).first() is not None:
             return Response({'Błąd': 'Podany email został już przypisany'}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = userDBSerializer(data=content)
+        serializer = userDBSerializer(data=request.content)
 
         if serializer.is_valid():
             serializer.save()
@@ -96,15 +96,13 @@ def register(request):
 def login(request):
     """Retrive user data from the database"""
 
-    content = json.loads(request.data["_content"])
-
     try:
-        if not contain_necessary_fields(content, ('login', 'password')):
+        if not contain_necessary_fields(request.content, ('login', 'password')):
             raise KeyError()
 
-        user = userDB.objects.get(login=content.get('login'))
+        user = userDB.objects.get(login=request.content.get('login'))
 
-        if user.password != content.get('password'):
+        if user.password != request.content.get('password'):
             return Response({'Błąd': 'Złe hasło'}, status=status.HTTP_401_UNAUTHORIZED)
 
         serializer = userDBSerializer(user)

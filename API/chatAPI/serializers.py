@@ -14,3 +14,10 @@ class chatDBMessagesSerializer(serializers.ModelSerializer):
     class Meta:
         model = chatDB
         fields = ['messages']
+
+class chatDBMembersSerializer(serializers.ModelSerializer):
+    members = serializers.JSONField(required=True)
+
+    class Meta:
+        model = chatDB
+        fields = ['members']
