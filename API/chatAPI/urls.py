@@ -8,4 +8,6 @@ urlpatterns = [
     path('api/deleteChat/', views.deleteChat, name='delete'),
     path('api/updateChatData/', views.updateChatMetaData, name='updateChatData'),
     path('api/deleteUser/', views.deleteUserFromChat, name='deleteUser'),
+
+    path('api/post/', views.postMessage, name='post'),
 ]

@@ -12,6 +12,12 @@ from API.settings import BASE_DIR
 import environ
 import json
 
+def contain_necessary_fields(content: dict, params: tuple) -> bool:
+    for param in params:
+        if content.get(param) is None:
+            return False
+    return True
+
 def check_api_key(view):
     @wraps(view)
     def wrapper(request, *args, **kwargs):
@@ -45,9 +51,8 @@ def register(request):
     content = json.loads(request.data["_content"])
 
     try:
-        for param in ('email', 'login', 'name', 'password', 'surname'):
-            if content.get(param) is None:
-                raise KeyError()
+        if not contain_necessary_fields(content, ('email', 'login', 'name', 'password', 'surname')):
+            raise KeyError()
 
         login = content.get('login')
         email = content.get('email')
@@ -55,6 +60,10 @@ def register(request):
         for i in login:
             if i == " ":
                 return Response({'Błąd': 'Login zawiera spacje'}, status=status.HTTP_400_BAD_REQUEST)
+
+        for param in ('name', 'surname', 'login'):
+            if content.get(param) in ('SERVER', 'server', 'Server', 'SERWER', 'serwer', 'Serwer'):
+                return Response({'Błąd': 'Użytkownik chce sie nazwać "SERVER"'}, status=status.HTTP_403_FORBIDDEN)
 
         if userDB.objects.filter(login=login).first() is not None:
             return Response({'Błąd': 'Taki login już istnieje'}, status=status.HTTP_400_BAD_REQUEST)
@@ -90,9 +99,8 @@ def login(request):
     content = json.loads(request.data["_content"])
 
     try:
-        for param in ('login', 'password'):
-            if content.get(param) is None:
-                raise KeyError()
+        if not contain_necessary_fields(content, ('login', 'password')):
+            raise KeyError()
 
         user = userDB.objects.get(login=content.get('login'))
 
