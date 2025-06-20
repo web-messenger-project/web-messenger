@@ -38,11 +38,41 @@ def getMessages(request):
 
     except DatabaseError:
         return Response({'Błąd': 'Baza danych nie działa :('}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    except chatDB.DoesNotExist:
+        return Response({'Błąd': 'Taki login nie istnieje'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['POST'])
 @check_api_key
 def createChat(request):
-    pass
+    """Create private or group chat"""
+
+    content = json.loads(request.data["_content"])
+
+    try:
+        for param in ('name', 'members', 'is_gropu_chat'):
+            if content.get(param) is None:
+                raise KeyError()
+
+        serializer = chatDBSerializer(data=content)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'Błąd': 'Nie ma wszystkich pól, jest ich za dużo lub są w nieprawidłowym formacie'}, status=status.HTTP_400_BAD_REQUEST)
+
+    except KeyError:
+        return Response({'Błąd': 'Nie ma wszystkich parametrów (lub jest za dużo)'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    except TypeError:
+        return Response({'Błąd': 'Body nie jest w formacie JSON'}, status=status.HTTP_400_BAD_REQUEST)
+
+    except ValueError:
+        return Response({'Błąd': 'Format jednego z pól jest nieprawidłowy'}, status=status.HTTP_400_BAD_REQUEST)
+
+    except DatabaseError:
+        return Response({'Błąd': 'Baza danych nie działa :('}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['PATCH'])
 @check_api_key

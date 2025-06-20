@@ -68,7 +68,7 @@ def register(request):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
-            raise KeyError()
+            return Response({'Błąd': 'Nie ma wszystkich pól, jest ich za dużo lub są w nieprawidłowym formacie'}, status=status.HTTP_400_BAD_REQUEST)
 
     except KeyError:
         return Response({'Błąd': 'Nie ma wszystkich parametrów (lub jest ich za dużo)'}, status=status.HTTP_400_BAD_REQUEST)
