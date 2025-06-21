@@ -5,7 +5,7 @@ from rest_framework import status
 from datetime import datetime # message date and time
 
 from db.models import chatDB, userDB
-from .serializers import chatDBSerializer, chatDBMessagesSerializer
+from .serializers import chatDBSerializer, chatDBMessagesSerializer, chatDBNoMessagesSerializer
 from userAPI.serializers import userDBSerializer
 
 from userAPI.views import check_api_key, contain_necessary_fields
@@ -293,10 +293,47 @@ def getChatMeta(request):
     Except for it's messages
     ''getMessages'' view does that"""
 
+    try:
+        chatID = request.content.get('id')
+        if chatID is None:
+            return Response({'Błąd': 'Nie podano ID chatu'}, status=status.HTTP_400_BAD_REQUEST)
 
+        chat = chatDB.objects.filter(id=chatID).first()
+        serializer = chatDBSerializer(chat)
+
+        copy = serializer.data.copy()
+        copy.pop('messages', None)
+
+    except TypeError:
+        return Response({'Błąd': 'Body nie jest w formacie JSON'}, status=status.HTTP_400_BAD_REQUEST)
+
+    except ValueError:
+        return Response({'Błąd': 'Nie ma chatu o takim ID lub format jednego z pól jest nieprawidłowy'}, status=status.HTTP_404_NOT_FOUND)
+
+    except DatabaseError:
+        return Response({'Błąd': 'Baza danych nie działa :('}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    except chatDB.DoesNotExist:
+        return Response({'Błąd': 'Nie ma chatu o takim ID'}, status=status.HTTP_404_NOT_FOUND)
+
+    else:
+        return Response(copy, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @check_api_key
 def getAllChats(request):
     """Returns data about each chat
     Use this for debugging"""
+
+    try:
+        chats = chatDB.objects.all()
+        serializer = chatDBNoMessagesSerializer(chats, many=True)
+
+    except TypeError:
+        return Response({'Błąd': 'Nie ma chatów w bazie danych'}, status=status.HTTP_404_NOT_FOUND)
+
+    except DatabaseError:
+        return Response({'Błąd': 'Baza danych nie działa :('}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    else:
+        return Response(serializer.data, status=status.HTTP_200_OK)

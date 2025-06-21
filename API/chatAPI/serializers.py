@@ -14,3 +14,8 @@ class chatDBMessagesSerializer(serializers.ModelSerializer):
     class Meta:
         model = chatDB
         fields = ['messages']
+
+class chatDBNoMessagesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = chatDB
+        exclude = ['messages']
