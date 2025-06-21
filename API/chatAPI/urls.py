@@ -9,8 +9,8 @@ urlpatterns = [
     path('api/update/', viewsChat.updateChatMetaData, name='update'),
     path('api/deleteUser/', viewsChat.deleteUserFromChat, name='deleteUser'),
 
-    path('api/deleteUser/', viewsChat.deleteUserFromChat, name='deleteUser'), # chat debug
-    path('api/deleteUser/', viewsChat.deleteUserFromChat, name='deleteUser'),
+    path('api/chatMeta/', viewsChat.getChatMeta, name='chatMeta'), # chat debug
+    path('api/getall/', viewsChat.getAllChats, name='getall'),
     
     path('api/post/', viewsMessages.postMessage, name='post'), # message usage
 ]
