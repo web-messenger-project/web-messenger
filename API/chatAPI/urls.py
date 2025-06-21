@@ -1,13 +1,16 @@
 from django.urls import path
-from chatAPI import views
+from chatAPI import viewsChat, viewsMessages
 
 urlpatterns = [
-    path('api/get/', views.getMessages, name='get'),
-    path('api/create/', views.createChat, name='create'),
-    path('api/addToChat/', views.addUserToChat, name='addToChat'),
-    path('api/deleteChat/', views.deleteChat, name='delete'),
-    path('api/updateChatData/', views.updateChatMetaData, name='updateChatData'),
-    path('api/deleteUser/', views.deleteUserFromChat, name='deleteUser'),
+    path('api/get/', viewsChat.getMessages, name='get'), # chat usage
+    path('api/create/', viewsChat.createChat, name='create'),
+    path('api/add/', viewsChat.addUserToChat, name='add'),
+    path('api/deleteChat/', viewsChat.deleteChat, name='deleteChat'),
+    path('api/update/', viewsChat.updateChatMetaData, name='update'),
+    path('api/deleteUser/', viewsChat.deleteUserFromChat, name='deleteUser'),
 
-    path('api/post/', views.postMessage, name='post'),
+    path('api/deleteUser/', viewsChat.deleteUserFromChat, name='deleteUser'), # chat debug
+    path('api/deleteUser/', viewsChat.deleteUserFromChat, name='deleteUser'),
+    
+    path('api/post/', viewsMessages.postMessage, name='post'), # message usage
 ]

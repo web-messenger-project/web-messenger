@@ -12,13 +12,16 @@ from API.settings import BASE_DIR
 import environ
 import json
 
-def contain_necessary_fields(content: dict, params: tuple) -> bool:
+
+def contain_necessary_fields(content: dict, params: tuple) -> bool: # function to iterate over request parameter and validate them
     for param in params:
         if content.get(param) is None:
             return False
     return True
 
-def check_api_key(view):
+
+
+def check_api_key(view): # decorator that checks for api key in request
     @wraps(view)
     def wrapper(request, *args, **kwargs):
         env = environ.Env()
@@ -44,6 +47,8 @@ def check_api_key(view):
         return view(request, *args, **kwargs)
 
     return wrapper
+
+
 
 @api_view(['POST'])
 @check_api_key
@@ -91,6 +96,8 @@ def register(request):
     except DatabaseError:
         return Response({'Błąd': 'Baza danych nie działa :('}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+
 @api_view(['POST'])
 @check_api_key
 def login(request):
@@ -124,18 +131,23 @@ def login(request):
     except userDB.DoesNotExist:
         return Response({'Błąd': 'Taki login nie istnieje'}, status=status.HTTP_404_NOT_FOUND)
 
-@api_view(['DELETE'])
+
+
+@api_view(['POST'])
 @check_api_key
 def delete_user(request):
     """Permanently removes user account"""
 
     try:
-        user_login = request.config.get('login')
+        user_login = request.content.get('login')
         if user_login is None:
             return Response({'Błąd': 'Nie podano loginu użytkownika'}, status=status.HTTP_400_BAD_REQUEST)
 
         user = userDB.objects.filter(login=user_login).first()
+        copy = user
         user.delete()
+
+        serializer = userDBSerializer(copy)
 
     except KeyError:
         return Response({'Błąd': 'Nie ma wszystkich parametrów (lub jest za dużo)'}, status=status.HTTP_400_BAD_REQUEST)
@@ -151,3 +163,26 @@ def delete_user(request):
 
     except userDB.DoesNotExist:
         return Response({'Błąd': 'Taki login nie istnieje'}, status=status.HTTP_404_NOT_FOUND)
+
+    else:
+        return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+
+
+
+@api_view(['POST'])
+@check_api_key
+def getAllUsers(request):
+    """Returns data about each user"""
+
+    try:
+        users = userDB.objects.all()
+        serializer = userDBSerializer(users, many=True)
+
+    except TypeError:
+        return Response({'Błąd': 'Nie ma użytkowników w bazie danych'}, status=status.HTTP_404_NOT_FOUND)
+    
+    except DatabaseError:
+        return Response({'Błąd': 'Baza danych nie działa :('}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    else:
+        return Response(serializer.data, status=status.HTTP_200_OK)
