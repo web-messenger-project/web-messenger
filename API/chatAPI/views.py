@@ -9,7 +9,6 @@ from .serializers import chatDBSerializer, chatDBMessagesSerializer, chatDBMembe
 from userAPI.serializers import userDBSerializer
 
 from userAPI.views import check_api_key, contain_necessary_fields
-import json
 
 
 # chat administartion operations
@@ -54,7 +53,7 @@ def createChat(request):
     """Creates private or group chat"""
 
     try:
-        if not contain_necessary_fields(request.content, ('name', 'members', 'is_gropu_chat')): # czy w parametrach sa te pola
+        if not contain_necessary_fields(request.content, ('name', 'members', 'is_group_chat')): # czy w parametrach sa te pola
             raise KeyError()
 
         serializer = chatDBSerializer(data=request.content) # serializuj body requesta, KTORE JEST PODSAWĄ STWORZENIA CHATU
@@ -68,7 +67,9 @@ def createChat(request):
                 user_record = userDB.objects.filter(login=user_login).first() # znajduje go w bazie danych
 
                 if user_record is not None: # jesli jest, to dodaje do listy ID jego chatow nowy chat
-                    user_record.included_in_these_chats.append(request.content.get('id'))
+                    new_chat_id = serializer.instance.id
+
+                    user_record.included_in_these_chats.append(new_chat_id)
                     user_record.save()
                 else:
                     return Response({'Błąd': 'Takiego użytkownika nie ma'}, status=status.HTTP_404_NOT_FOUND)
@@ -173,7 +174,50 @@ def deleteChat(request):
 @api_view(['PATCH'])
 @check_api_key
 def updateChatMetaData(request):
-    """Updates chat name or other metadata"""
+    """Updates chat name or other metadata
+    atp. only allows to change chat's name.
+    when more metadata to be added, this function will do more useful stuff"""
+
+    try:
+        chatID = request.config.get('id')
+        if chatID is None:
+            return Response({'Błąd': 'Nie podano ID chatu'}, status=status.HTTP_400_BAD_REQUEST)
+
+        chat = chatDB.objects.filter(id=chatID).first()
+
+        members = request.content.get('members')
+        messages = request.content.get('messages')
+        is_group_chat = request.content.get('is_group_chat')
+
+        if (members is None or messages is None or is_group_chat is None or
+            len(chat.members) != len(members) or
+            len(chat.messages) != len(messages) or
+            chat.is_group_chat != is_group_chat):
+
+            return Response({'Błąd': 'Modyfikowanie wrażliwych danych'}, status=status.HTTP_403_FORBIDDEN)
+        else:
+            serializer = chatDBSerializer(chat, data=request.content, partial=True)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                raise KeyError()
+
+    except KeyError:
+        return Response({'Błąd': 'Nie ma wszystkich parametrów (lub jest za dużo)'}, status=status.HTTP_400_BAD_REQUEST)
+
+    except TypeError:
+        return Response({'Błąd': 'Body nie jest w formacie JSON'}, status=status.HTTP_400_BAD_REQUEST)
+
+    except ValueError:
+        return Response({'Błąd': 'Nie ma chatu o takim ID lub format jednego z pól jest nieprawidłowy'}, status=status.HTTP_404_NOT_FOUND)
+
+    except DatabaseError:
+        return Response({'Błąd': 'Baza danych nie działa :('}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    except chatDB.DoesNotExist:
+        return Response({'Błąd': 'Nie ma chatu o takim ID'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['PATCH'])
 @check_api_key
@@ -212,15 +256,16 @@ def deleteUserFromChat(request):
 
     except DatabaseError:
         return Response({'Błąd': 'Baza danych nie działa :('}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+
     except userDB.DoesNotExist:
         return Response({'Błąd': 'Nie ma użytkownika z takim loginem'}, status=status.HTTP_404_NOT_FOUND)
-    
+
     except chatDB.DoesNotExist:
         return Response({'Błąd': 'Nie ma chatu o takim ID'}, status=status.HTTP_404_NOT_FOUND)
-    
+
     else:
         return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+
 
 # messages operations
 

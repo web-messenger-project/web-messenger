@@ -37,7 +37,7 @@ def check_api_key(view):
             q = request.data.get("q")
 
         if q != api_key:
-            return Response({'Błąd': 'Błędny klucz API'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'Błąd': 'Błędny klucz API lub niepoprawnie stworzony plik JSON, sprawdź czy na pewno na końcu ostatniego parametru nie ma przecinka'}, status=status.HTTP_401_UNAUTHORIZED)
 
         request.content = content
 
