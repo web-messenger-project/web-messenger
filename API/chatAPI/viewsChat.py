@@ -5,13 +5,11 @@ from rest_framework import status
 from datetime import datetime # message date and time
 
 from db.models import chatDB, userDB
-from .serializers import chatDBSerializer, chatDBMessagesSerializer, chatDBMembersSerializer
+from .serializers import chatDBSerializer, chatDBMessagesSerializer
 from userAPI.serializers import userDBSerializer
 
 from userAPI.views import check_api_key, contain_necessary_fields
 
-
-# chat administartion operations
 
 @api_view(['POST'])
 @check_api_key
@@ -46,6 +44,8 @@ def getMessages(request):
     
     else:
         return Response(serializer.data, status=status.HTTP_200_OK) # zwroc
+
+
 
 @api_view(['POST'])
 @check_api_key
@@ -93,20 +93,26 @@ def createChat(request):
     except userDB.DoesNotExist:
         return Response({'Błąd': 'Nie ma użytkownika z takim loginem'}, status=status.HTTP_404_NOT_FOUND)
 
+
+
 @api_view(['POST'])
 @check_api_key
 def addUserToChat(request):
     """Adds user to chat"""
 
     try:
-        if not contain_necessary_fields(request.content, ('chatID', 'login')): # czy sa te parametry
+        if not contain_necessary_fields(request.content, ('id', 'login')): # czy sa te parametry
             raise KeyError()
 
-        chat = chatDB.objects.filter(id=request.content.get('chatID')).first() # znajdz w bazie danych chat z parametru
+        chat = chatDB.objects.filter(id=request.content.get('id')).first() # znajdz w bazie danych chat z parametru
         user = userDB.objects.filter(login=request.content.get('login')).first() # i uzytkowanika
 
         if chat is None or user is None: # gdy nie ma obu do zakoncz
             return Response({'Błąd': 'Nie znaleziono podanego użytkownika lub chatu'}, status=status.HTTP_404_NOT_FOUND)
+
+        for chat_id in user.included_in_these_chats:
+            if chat_id == request.content.get('id'):
+                return Response({'Błąd': 'Użytkownik już jest w tym chacie'}, status=status.HTTP_400_BAD_REQUEST)
 
         chat.members.append({'name': user.name, 'surname': user.surname, 'login': user.login}) # do czlonok czatu zostaje dodany uzytkownik ze wszystkimi parametrami
         chat.save()
@@ -135,9 +141,11 @@ def addUserToChat(request):
         return Response({'Błąd': 'Nie ma chatu o takim ID'}, status=status.HTTP_404_NOT_FOUND)
     
     else:
-        return Response({serializer.data}, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-@api_view(['DELETE'])
+
+
+@api_view(['POST'])
 @check_api_key
 def deleteChat(request):
     """Deletes chat on provided ID"""
@@ -170,6 +178,8 @@ def deleteChat(request):
     
     else:
         return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+
+
 
 @api_view(['PATCH'])
 @check_api_key
@@ -219,7 +229,9 @@ def updateChatMetaData(request):
     except chatDB.DoesNotExist:
         return Response({'Błąd': 'Nie ma chatu o takim ID'}, status=status.HTTP_404_NOT_FOUND)
 
-@api_view(['PATCH'])
+
+
+@api_view(['POST'])
 @check_api_key
 def deleteUserFromChat(request):
     """Kicks user from chat"""
@@ -232,9 +244,15 @@ def deleteUserFromChat(request):
         chat = chatDB.objects.filter(id=request.content.get('id')).first()
 
         updated_user_list = user.included_in_these_chats
-        updated_user_list.remove(request.content.get('id'))
+
+        for i in range(len(updated_user_list)):
+            if updated_user_list[i] == request.content.get('id'):
+                updated_user_list.pop(i)
+                break
+
         user.included_in_these_chats = updated_user_list
         user.save()
+
 
         updated_chat_members = chat.members
 
@@ -246,7 +264,7 @@ def deleteUserFromChat(request):
         chat.members = updated_chat_members
         chat.save()
 
-        serializer = chatDBMembersSerializer(chat.members)
+        serializer = chatDBSerializer(chat)
 
     except TypeError:
         return Response({'Błąd': 'Body nie jest w formacie JSON'}, status=status.HTTP_400_BAD_REQUEST)
@@ -264,12 +282,21 @@ def deleteUserFromChat(request):
         return Response({'Błąd': 'Nie ma chatu o takim ID'}, status=status.HTTP_404_NOT_FOUND)
 
     else:
-        return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-# messages operations
 
 @api_view(['POST'])
 @check_api_key
-def postMessage(request):
-    """Posts messages from user to chat, that were provided"""
+def getChatMeta(request):
+    """Sends data about the chat
+    Except for it's messages
+    ''getMessages'' view does that"""
+
+
+
+@api_view(['POST'])
+@check_api_key
+def getAllChats(request):
+    """Returns data about each chat
+    Use this for debugging"""
