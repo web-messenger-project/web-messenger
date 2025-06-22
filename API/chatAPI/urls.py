@@ -12,5 +12,5 @@ urlpatterns = [
     path('api/chatMeta/', viewsChat.getChatMeta, name='chatMeta'), # chat debug
     path('api/getall/', viewsChat.getAllChats, name='getall'),
     
-    path('api/post/', viewsMessages.postMessage, name='post'), # message usage
+    #path('api/post/', viewsMessages.postMessage, name='post'), # message usage
 ]
