@@ -63,7 +63,7 @@ namespace WinFormsExample
                     string json = JsonConvert.SerializeObject(payload);
                     var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                    var response = await client.PostAsync("https://yourapi.com/register", content);
+                    var response = await client.PostAsync("https://web-messenger-api-host.onrender.com/user/api/register/", content);
 
                     if (response.IsSuccessStatusCode)
                     {
