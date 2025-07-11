@@ -60,7 +60,7 @@ REST_FRAMEWORK = {
     )
 }
 
-ROOT_URLCONF = 'userLoggingAPI.urls'
+ROOT_URLCONF = 'API.urls'
 
 TEMPLATES = [
     {
