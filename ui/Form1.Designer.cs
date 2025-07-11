@@ -1,4 +1,4 @@
-﻿namespace YourNamespace
+﻿namespace WinFormsExample
 {
     partial class Form1
     {
@@ -72,6 +72,7 @@
             this.Controls.Add(this.txtLogin);
             this.Name = "Form1";
             this.Text = "Login";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.ResumeLayout(false);
             this.PerformLayout();
         }

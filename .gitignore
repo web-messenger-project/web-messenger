@@ -38,3 +38,5 @@ ehthumbs.db
 
 # Ignore API key file
 apikey.txt
+bin/
+obj/

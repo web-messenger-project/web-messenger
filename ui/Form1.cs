@@ -11,6 +11,7 @@ namespace WinFormsExample
     public partial class Form1 : Form
     {
         private string ApiKey;
+        private static readonly HttpClient httpClient = new HttpClient();
 
         public Form1()
         {
@@ -23,7 +24,15 @@ namespace WinFormsExample
             try
             {
                 string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "apikey.txt");
-                ApiKey = File.ReadAllText(path).Trim();
+                if (File.Exists(path))
+                {
+                    ApiKey = File.ReadAllText(path).Trim();
+                }
+                else
+                {
+                    MessageBox.Show("API key file not found. Please create apikey.txt in the application directory.");
+                    ApiKey = null;
+                }
             }
             catch (Exception ex)
             {
@@ -40,46 +49,85 @@ namespace WinFormsExample
                 return;
             }
 
-            string login = txtLogin.Text;
-            string password = txtPassword.Text;
+            // Validate input
+            if (string.IsNullOrWhiteSpace(txtLogin.Text))
+            {
+                MessageBox.Show("Please enter your login.");
+                txtLogin.Focus();
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtPassword.Text))
+            {
+                MessageBox.Show("Please enter your password.");
+                txtPassword.Focus();
+                return;
+            }
+
+            // Disable button during request
+            btnLogin.Enabled = false;
+            btnLogin.Text = "Logging in...";
 
             var payload = new
             {
-                login,
-                password,
+                login = txtLogin.Text.Trim(),
+                password = txtPassword.Text,
                 q = ApiKey
             };
 
             try
             {
-                using (var client = new HttpClient())
+                var json = JsonConvert.SerializeObject(payload);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await httpClient.PostAsync("https://web-messenger-api-host.onrender.com/", content);
+
+                if (response.IsSuccessStatusCode)
                 {
-                    var json = JsonConvert.SerializeObject(payload);
-                    var content = new StringContent(json, Encoding.UTF8, "application/json");
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    MessageBox.Show("Login successful!");
 
-                    var response = await client.PostAsync("https://web-messenger-api-host.onrender.com/", content);
+                    // Clear password field for security
+                    txtPassword.Clear();
 
-                    if (response.IsSuccessStatusCode)
-                    {
-                        MessageBox.Show("Login successful!");
-                        
-                    }
-                    else
-                    {
-                        MessageBox.Show($"Login failed: {response.ReasonPhrase}");
-                    }
+                    // Here you can process the response and open main window
+                    // For example, parse user data, tokens, etc.
                 }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    MessageBox.Show($"Login failed: {response.ReasonPhrase}\nDetails: {errorContent}");
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                MessageBox.Show($"Network error: {ex.Message}\nPlease check your internet connection.");
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error calling API: {ex.Message}");
             }
+            finally
+            {
+                // Re-enable button
+                btnLogin.Enabled = true;
+                btnLogin.Text = "Log In";
+            }
         }
 
-        private void linkRegister_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        private void lblRegister_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             var registerForm = new RegisterForm();
             registerForm.ShowDialog();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                httpClient?.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 }

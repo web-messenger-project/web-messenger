@@ -48,13 +48,13 @@
             this.lblName.Name = "lblName";
             this.lblName.Size = new System.Drawing.Size(45, 17);
             this.lblName.TabIndex = 0;
-            this.lblName.Text = "Name";
+            this.lblName.Text = "Name:";
             // 
             // txtName
             // 
             this.txtName.Location = new System.Drawing.Point(120, 20);
             this.txtName.Name = "txtName";
-            this.txtName.Size = new System.Drawing.Size(200, 22);
+            this.txtName.Size = new System.Drawing.Size(200, 23);
             this.txtName.TabIndex = 1;
             // 
             // lblSurname
@@ -64,13 +64,13 @@
             this.lblSurname.Name = "lblSurname";
             this.lblSurname.Size = new System.Drawing.Size(65, 17);
             this.lblSurname.TabIndex = 2;
-            this.lblSurname.Text = "Surname";
+            this.lblSurname.Text = "Surname:";
             // 
             // txtSurname
             // 
             this.txtSurname.Location = new System.Drawing.Point(120, 60);
             this.txtSurname.Name = "txtSurname";
-            this.txtSurname.Size = new System.Drawing.Size(200, 22);
+            this.txtSurname.Size = new System.Drawing.Size(200, 23);
             this.txtSurname.TabIndex = 3;
             // 
             // lblEmail
@@ -80,13 +80,13 @@
             this.lblEmail.Name = "lblEmail";
             this.lblEmail.Size = new System.Drawing.Size(42, 17);
             this.lblEmail.TabIndex = 4;
-            this.lblEmail.Text = "Email";
+            this.lblEmail.Text = "Email:";
             // 
             // txtEmail
             // 
             this.txtEmail.Location = new System.Drawing.Point(120, 100);
             this.txtEmail.Name = "txtEmail";
-            this.txtEmail.Size = new System.Drawing.Size(200, 22);
+            this.txtEmail.Size = new System.Drawing.Size(200, 23);
             this.txtEmail.TabIndex = 5;
             // 
             // lblLogin
@@ -96,13 +96,13 @@
             this.lblLogin.Name = "lblLogin";
             this.lblLogin.Size = new System.Drawing.Size(40, 17);
             this.lblLogin.TabIndex = 6;
-            this.lblLogin.Text = "Login";
+            this.lblLogin.Text = "Login:";
             // 
             // txtLogin
             // 
             this.txtLogin.Location = new System.Drawing.Point(120, 140);
             this.txtLogin.Name = "txtLogin";
-            this.txtLogin.Size = new System.Drawing.Size(200, 22);
+            this.txtLogin.Size = new System.Drawing.Size(200, 23);
             this.txtLogin.TabIndex = 7;
             // 
             // lblPassword
@@ -112,13 +112,13 @@
             this.lblPassword.Name = "lblPassword";
             this.lblPassword.Size = new System.Drawing.Size(69, 17);
             this.lblPassword.TabIndex = 8;
-            this.lblPassword.Text = "Password";
+            this.lblPassword.Text = "Password:";
             // 
             // txtPassword
             // 
             this.txtPassword.Location = new System.Drawing.Point(120, 180);
             this.txtPassword.Name = "txtPassword";
-            this.txtPassword.Size = new System.Drawing.Size(200, 22);
+            this.txtPassword.Size = new System.Drawing.Size(200, 23);
             this.txtPassword.TabIndex = 9;
             this.txtPassword.UseSystemPasswordChar = true;
             // 
@@ -148,6 +148,7 @@
             this.Controls.Add(this.btnRegister);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "RegisterForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Register";
